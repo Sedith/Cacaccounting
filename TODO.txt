@@ -1,11 +1,13 @@
+Done:
 - parser for terminal API - https://docs.python.org/3/library/argparse.html#sub-commands
 - parse list of debtors
 - object serialization with pickle - https://openclassrooms.com/courses/apprenez-a-programmer-en-python/les-fichiers-2
 - saving in file
 - lowercase only
 - backup all balance
-
 - payer not in debtors
+
+Todo:
 - crypt savefile
 - GUI
 - mails management

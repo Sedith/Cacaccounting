@@ -146,11 +146,27 @@ def add_operation(payer, debtors, amount):
         if not check_pseudo_in(pseudo):
             return
     colocaca = colocaca+deepcopy([colocaca[-1]])
-    share = float("{0:.2f}".format(float(amount)/(len(debtors)+1)))
-    payers_share = float(amount) - share*len(debtors)
-    colocaca[-1][payer].balance += Money(amount - payers_share)
-    for debtor in debtors:
-        colocaca[-1][debtor].balance -= Money(share)
+    share = float("{0:.2f}".format(float(amount)/(len(debtors))))
+    payers_share = float(amount) - share*(len(debtors)-1)
+    first_is_baized = False
+    if payer in debtors:
+        colocaca[-1][payer].balance += Money(amount - payers_share)
+        debtors.remove(payer)
+    else:
+        colocaca[-1][payer].balance += Money(amount)
+        first_is_baized = True
+    for i, debtor in enumerate(debtors):
+        if first_is_baized and i == 0:
+            colocaca[-1][debtor].balance -= Money(payers_share)
+        else:
+            colocaca[-1][debtor].balance -= Money(share)
+
+def backup():
+    global colocaca
+    if len(colocaca) == 1:
+        print 'no previous balance'
+    else:
+        colocaca = colocaca[:-1]
 
 def display():
     global colocaca
@@ -192,6 +208,7 @@ def main():
     del_member_parser = subparsers.add_parser('del')
     del_member_parser.add_argument('pseudo', help='Name of the member to delete.')
 
+    subparsers.add_parser('backup')
     subparsers.add_parser('display')
     subparsers.add_parser('display_all')
     subparsers.add_parser('reset')
@@ -207,6 +224,9 @@ def main():
         display()
     elif args.action == 'del':
         del_member(args.pseudo)
+        display()
+    elif args.action == 'backup':
+        backup()
         display()
     elif args.action == 'display':
         display()
