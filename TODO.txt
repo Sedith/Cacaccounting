@@ -10,6 +10,7 @@ Done:
 
 Todo:
 - better GUI for debtors (checkbox, tiltbox...)
+- order in colocaca ? (dict)
 - crypt savefile
 - mails management
 - android app
