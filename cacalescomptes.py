@@ -3,8 +3,13 @@
 
 ### Imports
 import math
+import argparse
+import pickle
+from copy import deepcopy
+from os.path import exists
 
-### Money class
+################################################################################
+### Money class ###
 class Money:
 
     def __init__(self,v):
@@ -40,20 +45,22 @@ class Money:
     def __sub__(self,other):
         return Money(self.to_float()-other.to_float())
 
-### Ppl class
+################################################################################
+### Ppl class ###
 class ColocacaMember:
 
-	def __init__(self, p, m):
-		self.pseudo = p
+	#def __init__(self, p, m, a):
+	def __init__(self, m, a):
+		#self.pseudo = p
 		self.mail = m
-		self.balance = Money(0)
+		self.balance = Money(a)
 
-	@property
-	def pseudo(self):
-		return self.pseudo
-	@pseudo.setter
-	def pseudo(self, v):
-		self.pseudo = v
+	#@property
+	#def pseudo(self):
+	#	return self.pseudo
+	#@pseudo.setter
+	#def pseudo(self, v):
+	#	self.pseudo = v
 
 	@property
 	def mail(self):
@@ -69,50 +76,149 @@ class ColocacaMember:
 	def balance(self, v):
 		self.balance = v
 
-### Save balance in txtfile
-filename = 'colocaca.txt'
+################################################################################
+### Global variables ###
+filename = 'colocaca.pickle'
+colocaca = [{}]
+
+################################################################################
+### Check if name is in or out colocaca ###
+def check_pseudo_in(pseudo):
+    global colocaca
+    pseudo = pseudo.lower()
+    if pseudo not in colocaca[-1]:
+        print pseudo+' is not a colocaca member.'
+        return False
+    else:
+        return True
+
+def check_pseudo_out(pseudo):
+    global colocaca
+    pseudo = pseudo.lower()
+    if pseudo in colocaca[-1]:
+        print pseudo+' is already a colocaca member.'
+        return False
+    else:
+        return True
+
+################################################################################
+### Save balance in txtfile ###
 def save_balance():
-    pass
+    global colocaca, filename
+    with open(filename, 'wb') as savefile:
+        pickler = pickle.Pickler(savefile)
+        pickler.dump(colocaca)
+
+def reset_balance():
+    global colocaca
+    colocaca = [{}]
+    save_balance()
 
 def load_balance():
-    pass
+    global colocaca, filename
+    with open(filename, 'rb') as savefile:
+        unpickler = pickle.Unpickler(savefile)
+        try:
+            colocaca = unpickler.load()
+        except EOFError:
+            reset_balance()
 
-### Member management
-def add_member(pseudo, mail):
-    pass
+################################################################################
+### Actions ###
+def add_member(pseudo, mail, amount):
+    global colocaca
+    pseudo = pseudo.lower()
+    mail = mail.lower()
+    if check_pseudo_out(pseudo):
+        colocaca[-1][pseudo] = ColocacaMember(mail,amount)
 
 def del_member(pseudo):
-    pass
+    global colocaca
+    pseudo = pseudo.lower()
+    if check_pseudo_in(pseudo):
+        colocaca[-1].pop(pseudo)
 
-### Operations
-ppl = {}
-def operation(payer, debtors, amount):
-    global ppl
-    share = float(amount)/(len(debtors)+1)
-    print 'Part : '+str(share)
-    ppl[payer].balance += Money(amount - share)
+def add_operation(payer, debtors, amount):
+    global colocaca
+    payer = payer.lower()
+    debtors = [debtor.lower() for debtor in debtors]
+    for pseudo in [payer]+debtors:
+        if not check_pseudo_in(pseudo):
+            return
+    colocaca = colocaca+deepcopy([colocaca[-1]])
+    share = float("{0:.2f}".format(float(amount)/(len(debtors)+1)))
+    payers_share = float(amount) - share*len(debtors)
+    colocaca[-1][payer].balance += Money(amount - payers_share)
     for debtor in debtors:
-        ppl[debtor].balance -= Money(share)
+        colocaca[-1][debtor].balance -= Money(share)
 
-### Display
 def display():
-    global ppl
-    for member in ppl.values():
-        print member.pseudo+" :"+str(member.balance)
+    global colocaca
+    for pseudo in colocaca[-1].keys():
+        print pseudo+" : "+str(colocaca[-1][pseudo].balance)+'  ('+colocaca[-1][pseudo].mail+')'
 
+def display_all():
+    global colocaca
+    for i,caca in enumerate(colocaca):
+        print '----------\nBalance '+str(i)+' :'
+        for pseudo in caca.keys():
+            print pseudo+" : "+str(caca[pseudo].balance)+'  ('+caca[pseudo].mail+')'
+
+################################################################################
+### Main ###
 def main():
-    print Money(1.6)
-    ppl["Cacartin"] = ColocacaMember("Cacartin","moncul@yopmail.com")
-    ppl["Cacalex"] = ColocacaMember("Cacalex","soncul@yopmail.com")
-    ppl["Cacajim"] = ColocacaMember("Cacajim","songroscul@yopmail.com")
+    ### Fetch previous balance
+    global filename
+    if exists('./'+filename):
+        load_balance()
+    else:
+        reset_balance()
 
-    operation("Cacartin",["Cacalex","Cacajim"],10)
-    display()
-    operation("Cacalex",["Cacartin","Cacajim"],10)
-    display()
-    operation("Cacajim",["Cacalex","Cacartin"],10)
-    display()
+    ### Parse Args
+    parser = argparse.ArgumentParser(description='Cacalescomptes.')
+    subparsers = parser.add_subparsers(dest='action', help='Action.')
+    subparsers.required = True
 
+    operation_parser = subparsers.add_parser('pay')
+    operation_parser.add_argument('payer', help='Name of the payer.')
+    operation_parser.add_argument('amount', help='Amount of the operation.', type=float)
+    operation_parser.add_argument('debtors', nargs='*', help='List of the debtors.')
 
+    add_member_parser = subparsers.add_parser('add')
+    add_member_parser.add_argument('pseudo', help='Name of the new member.')
+    add_member_parser.add_argument('mail', help='Mail of the new member.')
+    add_member_parser.add_argument('amount', nargs='?', default=0, help='Initial credit.', type=float)
+
+    del_member_parser = subparsers.add_parser('del')
+    del_member_parser.add_argument('pseudo', help='Name of the member to delete.')
+
+    subparsers.add_parser('display')
+    subparsers.add_parser('display_all')
+    subparsers.add_parser('reset')
+
+    args = parser.parse_args()
+
+    ### Execute command
+    if args.action == 'pay':
+        add_operation(args.payer,args.debtors,args.amount)
+        display()
+    elif args.action == 'add':
+        add_member(args.pseudo, args.mail, args.amount)
+        display()
+    elif args.action == 'del':
+        del_member(args.pseudo)
+        display()
+    elif args.action == 'display':
+        display()
+    elif args.action == 'display_all':
+        display_all()
+    elif args.action == 'reset':
+        reset_balance()
+
+    ### Save
+    save_balance()
+
+################################################################################
+################################################################################
 if __name__ == '__main__':
     main()

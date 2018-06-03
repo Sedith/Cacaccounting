@@ -3,8 +3,8 @@
 - object serialization with pickle - https://openclassrooms.com/courses/apprenez-a-programmer-en-python/les-fichiers-2
 - saving in file
 - lowercase only
+- backup all balance
 
-- backup n-1th balance
 - payer not in debtors
 - crypt savefile
 - GUI
