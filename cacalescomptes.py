@@ -11,7 +11,7 @@ from os.path import exists
 ################################################################################
 ### Money class ###
 class Money:
-
+    ### Init
     def __init__(self,v):
         if v >= 0:
             self.units = int(math.floor(v))
@@ -20,6 +20,7 @@ class Money:
             self.units = int(math.ceil(v))
             self.cents = int( math.floor( (-v + math.ceil(v))*100 ) )
 
+    ### Properties
     @property
     def amount(self):
         return self.amount
@@ -27,6 +28,7 @@ class Money:
     def amount(self,v):
         self.amount = v
 
+    ### Conversion
     def to_float(self):
         if self.units >= 0:
             return float(self.units) + float(self.cents)/100
@@ -39,6 +41,7 @@ class Money:
         else:
             return str(self.units)+","+str(self.cents)
 
+    ### Operations
     def __add__(self,other):
         return Money(self.to_float()+other.to_float())
 
@@ -46,150 +49,126 @@ class Money:
         return Money(self.to_float()-other.to_float())
 
 ################################################################################
-### Ppl class ###
+### Colocaca classes ###
 class ColocacaMember:
-
-	#def __init__(self, p, m, a):
+    ### Init
 	def __init__(self, m, a):
-		#self.pseudo = p
 		self.mail = m
 		self.balance = Money(a)
 
-	#@property
-	#def pseudo(self):
-	#	return self.pseudo
-	#@pseudo.setter
-	#def pseudo(self, v):
-	#	self.pseudo = v
+class ColocacaSession:
+    ### Init
+    def __init__(self):
+        self.members = {}
 
-	@property
-	def mail(self):
-		return self.mail
-	@mail.setter
-	def mail(self, v):
-		self.mail = v
+    ### Properties
+    def names(self):
+        return self.members().key()
 
-	@property
-	def balance(self):
-		return self.balance
-	@balance.setter
-	def balance(self, v):
-		self.balance = v
-
-################################################################################
-### Global variables ###
-filename = 'colocaca.pickle'
-colocaca = [{}]
-
-################################################################################
-### Check if name is in or out colocaca ###
-def check_pseudo_in(pseudo):
-    global colocaca
-    pseudo = pseudo.lower()
-    if pseudo not in colocaca[-1]:
-        print pseudo+' is not a colocaca member.'
-        return False
-    else:
-        return True
-
-def check_pseudo_out(pseudo):
-    global colocaca
-    pseudo = pseudo.lower()
-    if pseudo in colocaca[-1]:
-        print pseudo+' is already a colocaca member.'
-        return False
-    else:
-        return True
-
-################################################################################
-### Save balance in txtfile ###
-def save_balance():
-    global colocaca, filename
-    with open(filename, 'wb') as savefile:
-        pickler = pickle.Pickler(savefile)
-        pickler.dump(colocaca)
-
-def reset_balance():
-    global colocaca
-    colocaca = [{}]
-    save_balance()
-
-def load_balance():
-    global colocaca, filename
-    with open(filename, 'rb') as savefile:
-        unpickler = pickle.Unpickler(savefile)
-        try:
-            colocaca = unpickler.load()
-        except EOFError:
-            reset_balance()
-
-################################################################################
-### Actions ###
-def add_member(pseudo, mail, amount):
-    global colocaca
-    pseudo = pseudo.lower()
-    mail = mail.lower()
-    if check_pseudo_out(pseudo):
-        colocaca[-1][pseudo] = ColocacaMember(mail,amount)
-
-def del_member(pseudo):
-    global colocaca
-    pseudo = pseudo.lower()
-    if check_pseudo_in(pseudo):
-        colocaca[-1].pop(pseudo)
-
-def add_operation(payer, debtors, amount):
-    global colocaca
-    payer = payer.lower()
-    debtors = [debtor.lower() for debtor in debtors]
-    for pseudo in [payer]+debtors:
-        if not check_pseudo_in(pseudo):
-            return
-    colocaca = colocaca+deepcopy([colocaca[-1]])
-    share = float("{0:.2f}".format(float(amount)/(len(debtors))))
-    payers_share = float(amount) - share*(len(debtors)-1)
-    first_is_baized = False
-    if payer in debtors:
-        colocaca[-1][payer].balance += Money(amount - payers_share)
-        debtors.remove(payer)
-    else:
-        colocaca[-1][payer].balance += Money(amount)
-        first_is_baized = True
-    for i, debtor in enumerate(debtors):
-        if first_is_baized and i == 0:
-            colocaca[-1][debtor].balance -= Money(payers_share)
+    ### Check
+    def check_pseudo_in(self, pseudo):
+        pseudo = pseudo.lower()
+        if pseudo not in self.members:
+            print pseudo+' is not a colocaca member.'
+            return False
         else:
-            colocaca[-1][debtor].balance -= Money(share)
+            return True
 
-def backup():
-    global colocaca
-    if len(colocaca) == 1:
-        print 'no previous balance'
-    else:
-        colocaca = colocaca[:-1]
+    def check_pseudo_out(self, pseudo):
+        pseudo = pseudo.lower()
+        if pseudo in self.members:
+            print pseudo+' is already a colocaca member.'
+            return False
+        else:
+            return True
 
-def display():
-    global colocaca
-    for pseudo in colocaca[-1].keys():
-        print pseudo+" : "+str(colocaca[-1][pseudo].balance)+'  ('+colocaca[-1][pseudo].mail+')'
+    ### Actions
+    def add_member(self, pseudo, mail, amount = 0.0):
+        pseudo = pseudo.lower()
+        mail = mail.lower()
+        if self.check_pseudo_out(pseudo):
+            self.members[pseudo] = ColocacaMember(mail,amount)
 
-def display_all():
-    global colocaca
-    for i,caca in enumerate(colocaca):
-        print '----------\nBalance '+str(i)+' :'
-        for pseudo in caca.keys():
-            print pseudo+" : "+str(caca[pseudo].balance)+'  ('+caca[pseudo].mail+')'
+    def del_member(self, pseudo):
+        pseudo = pseudo.lower()
+        if self.check_pseudo_in(pseudo):
+            self.members.pop(pseudo)
+
+    ### To string
+    def __str__(self):
+        ret = ''
+        for pseudo in self.members.keys():
+            ret += pseudo+" : "+str(self.members[pseudo].balance)+'  ('+self.members[pseudo].mail+')\n'
+        return ret
+
+class Colocaca:
+    ### Init
+    def __init__(self):
+        self.filename = 'colocaca.pickle'
+        self.sessions = [ColocacaSession()]
+        if exists(self.filename):
+            self.load_balance()
+        else:
+            self.reset_balance()
+
+    ### Access last session
+    def get_last_session(self):
+        return self.sessions[-1]
+
+    def backup(self):
+        if len(self.sessions) == 1:
+            print 'no previous balance'
+        else:
+            self.sessions = self.sessions[:-1]
+
+    ### Access savefile
+    def save_balance(self):
+        with open(self.filename, 'wb') as savefile:
+            pickler = pickle.Pickler(savefile)
+            pickler.dump(self.sessions)
+
+    def reset_balance(self):
+        last_session = deepcopy(self.get_last_session())
+        for member in last_session.members.keys():
+            last_session.members[member].balance = Money(0)
+        self.sessions = [last_session]
+        self.save_balance()
+
+    def load_balance(self):
+        with open(self.filename, 'rb') as savefile:
+            unpickler = pickle.Unpickler(savefile)
+            try:
+                self.sessions = unpickler.load()
+            except EOFError:
+                self.reset_balance()
+
+    ### Operation
+    def add_operation(self, payer, debtors, amount):
+        new_session = deepcopy(self.get_last_session())
+        payer = payer.lower()
+        debtors = [debtor.lower() for debtor in debtors]
+        for pseudo in [payer]+debtors:
+            if not new_session.check_pseudo_in(pseudo):
+                return None
+        share = float("{0:.2f}".format(float(amount)/(len(debtors))))
+        payers_share = float(amount) - share*(len(debtors)-1)
+        first_is_baized = False
+        if payer in debtors:
+            new_session.members[payer].balance += Money(amount - payers_share)
+            debtors.remove(payer)
+        else:
+            new_session.members[payer].balance += Money(amount)
+            first_is_baized = True
+        for i, debtor in enumerate(debtors):
+            if first_is_baized and i == 0:
+                new_session.members[debtor].balance -= Money(payers_share)
+            else:
+                new_session.members[debtor].balance -= Money(share)
+        self.sessions += [new_session]
 
 ################################################################################
 ### Main ###
-def main():
-    ### Fetch previous balance
-    global filename
-    if exists('./'+filename):
-        load_balance()
-    else:
-        reset_balance()
-
+def term_api(colocaca):
     ### Parse Args
     parser = argparse.ArgumentParser(description='Cacalescomptes.')
     subparsers = parser.add_subparsers(dest='action', help='Action.')
@@ -217,26 +196,35 @@ def main():
 
     ### Execute command
     if args.action == 'pay':
-        add_operation(args.payer,args.debtors,args.amount)
-        display()
+        colocaca.add_operation(args.payer,args.debtors,args.amount)
     elif args.action == 'add':
-        add_member(args.pseudo, args.mail, args.amount)
-        display()
+        colocaca.get_last_session().add_member(args.pseudo, args.mail, args.amount)
     elif args.action == 'del':
-        del_member(args.pseudo)
-        display()
+        colocaca.get_last_session().del_member(args.pseudo)
     elif args.action == 'backup':
-        backup()
-        display()
+        colocaca.backup()
     elif args.action == 'display':
-        display()
+        print colocaca.get_last_session()
     elif args.action == 'display_all':
-        display_all()
+        for i,session in enumerate(colocaca.sessions,1):
+            print 'Session '+str(i)
+            print session
     elif args.action == 'reset':
-        reset_balance()
+        colocaca.reset_balance()
+
+
+def main():
+    ### Load
+    colocaca = Colocaca()
+    colocaca.load_balance()
+
+    term_api(colocaca)
+
+    session = colocaca.get_last_session()
+    #print colocaca.get_last_session()
 
     ### Save
-    save_balance()
+    colocaca.save_balance()
 
 ################################################################################
 ################################################################################

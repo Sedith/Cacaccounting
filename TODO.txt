@@ -9,7 +9,7 @@ Done:
 
 Todo:
 - crypt savefile
-- GUI
+- GUI - http://appjar.info/
 - mails management
 - android app
 - online
