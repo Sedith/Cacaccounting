@@ -63,7 +63,7 @@ class ColocacaSession:
 
     ### Properties
     def names(self):
-        return self.members().key()
+        return self.members.keys()
 
     ### Check
     def check_pseudo_in(self, pseudo):
@@ -84,6 +84,9 @@ class ColocacaSession:
 
     ### Actions
     def add_member(self, pseudo, mail, amount = 0.0):
+        if len(pseudo) < 3:
+            print pseudo+' is too short.'
+            return None
         pseudo = pseudo.lower()
         mail = mail.lower()
         if self.check_pseudo_out(pseudo):
@@ -98,7 +101,8 @@ class ColocacaSession:
     def __str__(self):
         ret = ''
         for pseudo in self.members.keys():
-            ret += pseudo+" : "+str(self.members[pseudo].balance)+'  ('+self.members[pseudo].mail+')\n'
+            #ret += pseudo+" : "+str(self.members[pseudo].balance)+'  ('+self.members[pseudo].mail+')\n'
+            ret += pseudo+" : "+str(self.members[pseudo].balance)+'\n'
         return ret
 
 class Colocaca:
@@ -212,14 +216,14 @@ def term_api(colocaca):
     elif args.action == 'reset':
         colocaca.reset_balance()
 
-
 def main():
     ### Load
     colocaca = Colocaca()
-    colocaca.load_balance()
 
+    ### Terminal API
     term_api(colocaca)
 
+    ### Print
     session = colocaca.get_last_session()
     print colocaca.get_last_session()
 

@@ -6,10 +6,11 @@ Done:
 - lowercase only
 - backup all balance
 - payer not in debtors
+- GUI - http://appjar.info/
 
 Todo:
+- better GUI for debtors (checkbox, tiltbox...)
 - crypt savefile
-- GUI - http://appjar.info/
 - mails management
 - android app
 - online
