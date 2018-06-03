@@ -9,7 +9,7 @@ Done:
 - GUI - http://appjar.info/
 
 Todo:
-- better GUI for debtors (checkbox, tiltbox...)
+- better GUI for debtors (checkbox, tiltbox...) - http://appjar.info/pythonWidgets/#properties
 - order in colocaca ? (dict)
 - crypt savefile
 - mails management
