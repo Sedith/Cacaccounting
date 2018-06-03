@@ -221,7 +221,7 @@ def main():
     term_api(colocaca)
 
     session = colocaca.get_last_session()
-    #print colocaca.get_last_session()
+    print colocaca.get_last_session()
 
     ### Save
     colocaca.save_balance()
