@@ -12,6 +12,7 @@ Todo:
 - better GUI for debtors (checkbox, tiltbox...) - http://appjar.info/pythonWidgets/#properties
 - order in colocaca ? (dict)
 - crypt savefile
+- date de session
 - mails management
 - android app
 - online
