@@ -69,7 +69,7 @@ class ColocacaSession:
     def check_pseudo_in(self, pseudo):
         pseudo = pseudo.lower()
         if pseudo not in self.members:
-            print pseudo+' is not a colocaca member.'
+            print (pseudo+' is not a colocaca member.')
             return False
         else:
             return True
@@ -77,7 +77,7 @@ class ColocacaSession:
     def check_pseudo_out(self, pseudo):
         pseudo = pseudo.lower()
         if pseudo in self.members:
-            print pseudo+' is already a colocaca member.'
+            print (pseudo+' is already a colocaca member.')
             return False
         else:
             return True
@@ -85,7 +85,7 @@ class ColocacaSession:
     ### Actions
     def add_member(self, pseudo, mail, amount = 0.0):
         if len(pseudo) < 3:
-            print pseudo+' is too short.'
+            print (pseudo+' is too short.')
             return None
         pseudo = pseudo.lower()
         mail = mail.lower()
@@ -121,7 +121,7 @@ class Colocaca:
 
     def backup(self):
         if len(self.sessions) == 1:
-            print 'no previous balance'
+            print ('no previous balance')
         else:
             self.sessions = self.sessions[:-1]
 
@@ -208,11 +208,11 @@ def term_api(colocaca):
     elif args.action == 'backup':
         colocaca.backup()
     elif args.action == 'display':
-        print colocaca.get_last_session()
+        print (colocaca.get_last_session())
     elif args.action == 'display_all':
         for i,session in enumerate(colocaca.sessions,1):
-            print 'Session '+str(i)
-            print session
+            print ('Session '+str(i))
+            print (session)
     elif args.action == 'reset':
         colocaca.reset_balance()
 
@@ -225,7 +225,7 @@ def main():
 
     ### Print
     session = colocaca.get_last_session()
-    print colocaca.get_last_session()
+    print (colocaca.get_last_session())
 
     ### Save
     colocaca.save_balance()
