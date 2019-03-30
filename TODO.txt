@@ -10,6 +10,7 @@ Done:
 
 Todo:
 - errors when no member (clearAll)
+- change names (colocaca => cacaccounting, name of pickle file => counts.pickle)
 - better GUI for debtors (checkbox, tiltbox...) - http://appjar.info/pythonWidgets/#properties
 - "default debtors = all" in GUI
 - order in colocaca ? (dict)
